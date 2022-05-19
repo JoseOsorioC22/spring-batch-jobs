@@ -1,23 +1,21 @@
 package com.infybuzz.service;
 
-import com.infybuzz.request.JobparamsRequest;
+
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
 @Service
-public class JobService {
+public class SecondJobSheduler {
 
     @Autowired
     private JobLauncher jobLauncher;
@@ -30,35 +28,24 @@ public class JobService {
     @Qualifier("secondJob")
     private Job secondJob;
 
-
     private static final Logger log = Logger.getLogger("com.infybuzz.service");
 
-    @Async
-    public void startJob(String jobName, @RequestBody List<JobparamsRequest> jobParameterslist)
+    @Scheduled(cron = "0 0/1 * 1/1 * ?")
+    public void SecondJobStarter()
     {
+        log.info("Mostrando desde Second Job Starter");
         Map<String, JobParameter> params = new HashMap<>();
-
-        jobParameterslist.stream().forEach((objetoParams) ->
-        {
-            params.put(objetoParams.getParamKey(), new JobParameter(objetoParams.getParamValue()));
-        });
-
+        params.put("currentTime", new JobParameter(System.currentTimeMillis()));
         JobParameters jobParameters = new JobParameters(params);
         try
-       {
-           if(jobName.equals("first"))
-           {
-               jobLauncher.run(firstJob, jobParameters);
-           } else if(jobName.equals("second"))
-           {
-               jobLauncher.run(secondJob, jobParameters);
-           }
-       } catch(Exception e)
-       {
-           log.warning("Error en el metodo startJob en clase JobService " + e.getMessage() + "/n"
-           + e.getCause());
-       }
+        {
+          jobLauncher.run(secondJob, jobParameters );
 
+        } catch(Exception e)
+        {
+            log.warning("Error en el metodo startJob en clase SecondJobSheduler" + e.getMessage() + "/n"
+                    + e.getCause());
+        }
     }
 
 }
