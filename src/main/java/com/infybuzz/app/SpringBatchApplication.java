@@ -10,7 +10,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication
 @EnableBatchProcessing
 @EnableAsync
-@EnableScheduling
+//@EnableScheduling
 @ComponentScan({"com.infybuzz.config", "com.infybuzz.service",
 	"com.infybuzz.listener", "com.infybuzz.reader", "com.infybuzz.processor", 
 	"com.infybuzz.writer", "com.infybuzz.controller"})

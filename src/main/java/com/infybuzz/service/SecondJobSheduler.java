@@ -30,7 +30,7 @@ public class SecondJobSheduler {
 
     private static final Logger log = Logger.getLogger("com.infybuzz.service");
 
-    @Scheduled(cron = "0 0/1 * 1/1 * ?")
+    //@Scheduled(cron = "0 0/1 * 1/1 * ?")
     public void SecondJobStarter()
     {
         log.info("Mostrando desde Second Job Starter");
