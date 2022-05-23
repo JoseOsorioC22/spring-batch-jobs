@@ -13,7 +13,6 @@ import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.item.file.FlatFileItemReader;
-import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
 import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
 import org.springframework.batch.item.file.mapping.DefaultLineMapper;
 import org.springframework.batch.item.file.mapping.FieldSetMapper;
@@ -37,170 +36,163 @@ import java.time.LocalDate;
 @Configuration
 public class SampleJob {
 
-	@Autowired
-	private JobBuilderFactory jobBuilderFactory;
+    @Autowired
+    private JobBuilderFactory jobBuilderFactory;
 
-	@Autowired
-	private StepBuilderFactory stepBuilderFactory;
-	
-	@Autowired
-	private SecondTasklet secondTasklet;
-	
-	@Autowired
-	private FirstJobListener firstJobListener;
-	
-	@Autowired
-	private FirstStepListener firstStepListener;
+    @Autowired
+    private StepBuilderFactory stepBuilderFactory;
 
-	@Autowired
-	private FirstItemReader firstItemReader;
+    @Autowired
+    private SecondTasklet secondTasklet;
 
-	@Autowired
-	private FirstItemProcessor firstItemProcessor;
+    @Autowired
+    private FirstJobListener firstJobListener;
 
-	@Autowired
-	private FirstItemWriter firstItemWriter;
+    @Autowired
+    private FirstStepListener firstStepListener;
 
+    @Autowired
+    private FirstItemReader firstItemReader;
 
-	@Bean
-	public Job firstJob() {
-		return jobBuilderFactory.get("First Job")
-				.incrementer(new RunIdIncrementer())
-				.start(firstStep())
-				.next(secondStep())
-				.listener(firstJobListener)
-				.build();
-	}
+    @Autowired
+    private FirstItemProcessor firstItemProcessor;
 
-	@Bean
-	public Step firstStep() {
-		return stepBuilderFactory.get("First Step")
-				.tasklet(firstTask())
-				.listener(firstStepListener)
-				.build();
-	}
+    @Autowired
+    private FirstItemWriter firstItemWriter;
 
 
-	public Tasklet firstTask() {
-		return new Tasklet() {
+    @Bean
+    public Job firstJob() {
+        return jobBuilderFactory.get("First Job")
+                .incrementer(new RunIdIncrementer())
+                .start(firstStep())
+                .next(secondStep())
+                .listener(firstJobListener)
+                .build();
+    }
 
-			@Override
-			public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-
-				return RepeatStatus.FINISHED;
-			}
-		};
-	}
-	
-	public Step secondStep() {
-		return stepBuilderFactory.get("Second Step")
-				.tasklet(secondTasklet)
-				.build();
-	}
-	
-	/*
-	 * private Tasklet secondTask() { return new Tasklet() {
-	 * 
-	 * @Override public RepeatStatus execute(StepContribution contribution,
-	 * ChunkContext chunkContext) throws Exception {
-	 * System.out.println("This is second tasklet step"); return
-	 * RepeatStatus.FINISHED; } }; }
-	 */
+    @Bean
+    public Step firstStep() {
+        return stepBuilderFactory.get("First Step")
+                .tasklet(firstTask())
+                .listener(firstStepListener)
+                .build();
+    }
 
 
-	@Bean
-	public Job secondJob() {
-		return jobBuilderFactory.get("Second Job")
-				.incrementer(new RunIdIncrementer())
-				.start(StepWithChunk())
-				.build();
-	}
+    public Tasklet firstTask() {
+        return new Tasklet() {
 
-	@Bean
-	public Step StepWithChunk()
-	{
-		return stepBuilderFactory.get("step with Chunk")
-				.<StudentDTO, StudentDTO>chunk(2)
-				.reader(readCSV())
-				//.processor(firstItemProcessor)
-				.writer(firstItemWriter)
-				.build();
+            @Override
+            public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
 
-	}
+                return RepeatStatus.FINISHED;
+            }
+        };
+    }
 
+    public Step secondStep() {
+        return stepBuilderFactory.get("Second Step")
+                .tasklet(secondTasklet)
+                .build();
+    }
 
-// Este metodo permite convertir la fecha de nacimiento A DateTime
-	public ConversionService testConversionService() {
-		DefaultConversionService testConversionService = new DefaultConversionService();
-		DefaultConversionService.addDefaultConverters(testConversionService);
-		testConversionService.addConverter(new Converter<String, LocalDate>() {
-			@Override
-			public LocalDate convert(String text) {
-				return LocalDate.parse(text);
-			}
-
-		});
-
-		return testConversionService;
-	}
+    /*
+     * private Tasklet secondTask() { return new Tasklet() {
+     *
+     * @Override public RepeatStatus execute(StepContribution contribution,
+     * ChunkContext chunkContext) throws Exception {
+     * System.out.println("This is second tasklet step"); return
+     * RepeatStatus.FINISHED; } }; }
+     */
 
 
+    @Bean
+    public Job secondJob() {
+        return jobBuilderFactory.get("Second Job")
+                .incrementer(new RunIdIncrementer())
+                .start(StepWithChunk())
+                .build();
+    }
 
-	public FlatFileItemReader<StudentDTO> readCSV()
-	{
-	/*
-	* For this,  first:
-	* -> Create the reference FlatFIleItemReader and add the type
-	* -> Source location of csv file
-	* -> the line Mapper:
-	*     -> Line tokenizer
-	* 	  -> Bean Mapper */
-		FlatFileItemReader<StudentDTO> flatFileItemReader = new FlatFileItemReader<>();
+    @Bean
+    public Step StepWithChunk() {
+        return stepBuilderFactory.get("step with Chunk")
+                .<StudentDTO, StudentDTO>chunk(2)
+                .reader(readCSV())
+                //.processor(firstItemProcessor)
+                .writer(firstItemWriter)
+                .build();
 
-
-
-		// Leemos el archivo .csv
-
-		flatFileItemReader.setResource(new FileSystemResource(
-			new File("C:\\Users\\josse\\Downloads\\Create-First-Item-Reader\\src\\main\\resources\\students.csv")));
-
-		// Se Mapea
-		flatFileItemReader.setLineMapper(new DefaultLineMapper<StudentDTO>(){
-			{ // Pasamos el line tokenizer
-				setLineTokenizer(new DelimitedLineTokenizer()
-				{
-					{ // establecemos los nombres que se encuentran en el indide del  archivo csv
-						setNames("Id", "nombre", "apellidos", "email", "fechaNacimiento");
-					}
-				});
-				setFieldSetMapper(new BeanWrapperFieldSetMapper<StudentDTO>()
-				{
-					{
-						setTargetType(StudentDTO.class);
-					}
-					{
-						setConversionService(testConversionService());
-					}
-				});
-
-			}
-		});
+    }
 
 
-		// Le indicamos las lineas que ira leyendo (en este caso es de uno en uno )
-		flatFileItemReader.setLinesToSkip(1);
+    // Este metodo permite convertir la fecha de nacimiento A LocalDate
+    public ConversionService testConversionService() {
+        DefaultConversionService testConversionService = new DefaultConversionService();
+        DefaultConversionService.addDefaultConverters(testConversionService);
+        testConversionService.addConverter(new Converter<String, LocalDate>() {
+            @Override
+            public LocalDate convert(String text) {
+                return LocalDate.parse(text);
+            }
 
-		return flatFileItemReader;
-	}
+        });
 
-	@Bean
-	public FieldSetMapper<StudentDTO> testClassRowMapper(ConversionService conversionService)
-	{
-		BeanWrapperFieldSetMapper<StudentDTO> mapper = new BeanWrapperFieldSetMapper<>();
-		mapper.setConversionService(conversionService);
-		mapper.setTargetType(StudentDTO.class);
-		return mapper;
-	}
+        return testConversionService;
+    }
+
+
+    public FlatFileItemReader<StudentDTO> readCSV() {
+        /*
+         * For this,  first:
+         * -> Create the reference FlatFIleItemReader and add the type
+         * -> Source location of csv file
+         * -> the line Mapper:
+         *     -> Line tokenizer
+         * 	  -> Bean Mapper */
+
+        // Creamos los objetos:
+
+        // Leemos el archivo .csv
+        File file =  new File("C:\\Users\\josse\\Downloads\\Create-First-Item-Reader\\src\\main\\resources\\students.csv");
+        FileSystemResource recurso = new FileSystemResource(file);
+        FlatFileItemReader<StudentDTO> flatFileItemReader = new FlatFileItemReader<>();
+        DefaultLineMapper<StudentDTO> defaultLineMapper = new DefaultLineMapper<StudentDTO>();
+        BeanWrapperFieldSetMapper<StudentDTO> beanWrapperFieldSetMapper = new BeanWrapperFieldSetMapper<>();
+        DelimitedLineTokenizer delimitedLineTokenizer = new DelimitedLineTokenizer();
+
+
+        // Establecemos el recurso
+        flatFileItemReader.setResource(recurso);
+
+        // Delimitamos:
+        delimitedLineTokenizer.setNames("Id", "nombre", "apellidos", "email", "fechaNacimiento"); // Los nombres a leer
+        delimitedLineTokenizer.setDelimiter("|"); // carcater que delimita
+
+        // El Wrapper
+        beanWrapperFieldSetMapper.setTargetType(StudentDTO.class); // Le pasamos la clase del objeto que mapea
+        beanWrapperFieldSetMapper.setConversionService(testConversionService()); // le agregamos la linea para la conversion del campo LocalDate
+
+
+
+        defaultLineMapper.setLineTokenizer(delimitedLineTokenizer); // le pasamos el delimitador
+        defaultLineMapper.setFieldSetMapper(beanWrapperFieldSetMapper); // le pasamos la clase encargada que mapea
+        flatFileItemReader.setLineMapper(defaultLineMapper); // le pasamos el objeto defaultLineMapper
+
+        // Le indicamos las lineas que irá leyendo (en este caso es de uno en uno )
+        flatFileItemReader.setLinesToSkip(1);
+
+        return flatFileItemReader; // retornamos
+    }
+
+    @Bean
+    public FieldSetMapper<StudentDTO> testClassRowMapper(ConversionService conversionService) {
+        BeanWrapperFieldSetMapper<StudentDTO> mapper = new BeanWrapperFieldSetMapper<>();
+        mapper.setConversionService(conversionService);
+        mapper.setTargetType(StudentDTO.class);
+        return mapper;
+    }
 
 
 }

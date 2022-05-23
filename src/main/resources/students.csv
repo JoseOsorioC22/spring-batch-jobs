@@ -1,11 +1,11 @@
-Id, nombre,apellidos,email,fechaNacimiento
-1, Jose, Perez, jperez@gmailcom,2020-05-15
-2, Carlos, Torres, ctorres@gmailcom,2020-05-16
-3, Luis, Perez, jperez@gmailcom,2020-05-17
-4, Andres, Ortega, aortega@gmailcom,2020-05-18
-5, Camilo, Perez, cperez@gmailcom,2020-05-15
-6, Fabio, Ramirez, jperez@gmailcom,2020-05-19
-7, Maria, Ortega, mortega@gmailcom,2020-05-20
-8, Pedro, Nuñez, pnuñez@gmailcom,2020-10-15
-9, Luisa, Ramirez, lramirez@gmailcom,2020-05-15
-10,Gonzalo, Torres, jperez@gmailcom,2020-12-15
+Id| nombre|apellidos|email|fechaNacimiento
+1| Jose| Perez| jperez@gmailcom|2020-05-15
+2| Carlos| Torres| ctorres@gmailcom|2020-05-16
+3| Luis| Perez| jperez@gmailcom|2020-05-17
+4| Andres| Ortega| aortega@gmailcom|2020-05-18
+5| Camilo| Perez| cperez@gmailcom|2020-05-15
+6| Fabio| Ramirez| jperez@gmailcom|2020-05-19
+7| Maria| Ortega| mortega@gmailcom|2020-05-20
+8| Pedro| Nuñez| pnuñez@gmailcom|2020-10-15
+9| Luisa| Ramirez| lramirez@gmailcom|2020-05-15
+10|Gonzalo| Torres| jperez@gmailcom|2020-12-15
