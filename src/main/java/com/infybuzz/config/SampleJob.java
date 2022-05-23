@@ -1,6 +1,7 @@
 package com.infybuzz.config;
 
 import com.infybuzz.model.StudentDTO;
+import com.infybuzz.model.StudentJdbc;
 import com.infybuzz.processor.FirstItemProcessor;
 import com.infybuzz.reader.FirstItemReader;
 import com.infybuzz.writer.FirstItemWriter;
@@ -12,6 +13,7 @@ import org.springframework.batch.core.configuration.annotation.StepBuilderFactor
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
+import org.springframework.batch.item.database.JdbcCursorItemReader;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
 import org.springframework.batch.item.file.mapping.DefaultLineMapper;
@@ -29,7 +31,9 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 
+import javax.sql.DataSource;
 import java.io.File;
 import java.time.LocalDate;
 
@@ -59,6 +63,9 @@ public class SampleJob {
 
     @Autowired
     private FirstItemWriter firstItemWriter;
+
+    @Autowired
+    private DataSource dataSource;
 
 
     @Bean
@@ -118,8 +125,9 @@ public class SampleJob {
     @Bean
     public Step StepWithChunk() {
         return stepBuilderFactory.get("step with Chunk")
-                .<StudentDTO, StudentDTO>chunk(2)
-                .reader(readCSV())
+                .<StudentJdbc, StudentJdbc>chunk(2)
+               // .reader(readCSV())
+                .reader(JdbcCursorItemReader())
                 //.processor(firstItemProcessor)
                 .writer(firstItemWriter)
                 .build();
@@ -183,6 +191,7 @@ public class SampleJob {
         // Le indicamos las lineas que irá leyendo (en este caso es de uno en uno )
         flatFileItemReader.setLinesToSkip(1);
 
+
         return flatFileItemReader; // retornamos
     }
 
@@ -193,6 +202,25 @@ public class SampleJob {
         mapper.setTargetType(StudentDTO.class);
         return mapper;
     }
+
+    public JdbcCursorItemReader<StudentJdbc> JdbcCursorItemReader()
+    {
+        JdbcCursorItemReader<StudentJdbc> jdbccursorItemReader = new JdbcCursorItemReader<StudentJdbc>();
+
+        jdbccursorItemReader.setDataSource(dataSource);
+        jdbccursorItemReader.setSql("select id, nombre, apellido, email from student");
+
+        jdbccursorItemReader.setRowMapper( new BeanPropertyRowMapper<StudentJdbc>()
+        {
+            {
+                setMappedClass(StudentJdbc.class);
+            }
+        });
+
+        return  jdbccursorItemReader;
+    }
+
+
 
 
 }
