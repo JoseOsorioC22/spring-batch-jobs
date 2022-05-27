@@ -8,6 +8,8 @@ public class StudentJdbc {
 
     private String apellido;
 
+    private String email;
+
     @Override
     public String toString() {
         return "StudentJdbc{" +
@@ -18,7 +20,7 @@ public class StudentJdbc {
                 '}';
     }
 
-    private String email;
+
 
     public StudentJdbc(Integer id, String nombre, String apellido, String email) {
         this.id = id;

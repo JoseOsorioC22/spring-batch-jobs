@@ -12,9 +12,12 @@ import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.scope.context.ChunkContext;
+import org.springframework.batch.core.step.skip.AlwaysSkipItemSkipPolicy;
+import org.springframework.batch.core.step.skip.NonSkippableReadException;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.item.database.JdbcCursorItemReader;
 import org.springframework.batch.item.file.FlatFileItemReader;
+import org.springframework.batch.item.file.FlatFileParseException;
 import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
 import org.springframework.batch.item.file.mapping.DefaultLineMapper;
 import org.springframework.batch.item.file.mapping.FieldSetMapper;
@@ -74,6 +77,7 @@ public class SampleJob {
                 .incrementer(new RunIdIncrementer())
                 .start(firstStep())
                 .next(secondStep())
+
                 .listener(firstJobListener)
                 .build();
     }
@@ -125,11 +129,23 @@ public class SampleJob {
     @Bean
     public Step StepWithChunk() {
         return stepBuilderFactory.get("step with Chunk")
-                .<StudentJdbc, StudentJdbc>chunk(2)
-               // .reader(readCSV())
-                .reader(JdbcCursorItemReader())
+                .<StudentDTO, StudentDTO>chunk(2)
+                .reader(readCSV())
+                //.reader(JdbcCursorItemReader())
                 //.processor(firstItemProcessor)
                 .writer(firstItemWriter)
+                .faultTolerant()
+               // .skip(FlatFileParseException.class)
+                .skip(ArithmeticException.class)// se salta algun registro que esté
+                                                   // malo o tenga problemas de consistencia.
+
+                .skipPolicy(new AlwaysSkipItemSkipPolicy()) // es mas sofisticado que SkipLimit(),
+                                                           // puesto que ya no es necesario establecerle
+                                                            // el limite, sino que se omiten todas las
+                                                            // exepciones del tipo que se le pase en el
+                                                            // skip
+
+                // .skipLimit(2)   // limita el numero de veces que tiene que saltar del error
                 .build();
 
     }
