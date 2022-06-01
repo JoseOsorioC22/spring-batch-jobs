@@ -1,7 +1,6 @@
 package com.infybuzz.writer;
 
 import com.infybuzz.model.StudentDTO;
-import com.infybuzz.model.StudentJdbc;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.stereotype.Component;
 
@@ -19,6 +18,10 @@ public class FirstItemWriter implements ItemWriter<StudentDTO> {
 
         list.stream().forEach((p) ->
         {
+            if(p.getId() == 9)
+            {
+                throw  new ArithmeticException("ERROR ARITMETICO!!!");
+            }
             System.out.println("Numero: " + p );
         });
     }

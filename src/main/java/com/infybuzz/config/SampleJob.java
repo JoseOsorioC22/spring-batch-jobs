@@ -1,5 +1,6 @@
 package com.infybuzz.config;
 
+import com.infybuzz.listener.SkipListener;
 import com.infybuzz.model.StudentDTO;
 import com.infybuzz.model.StudentJdbc;
 import com.infybuzz.processor.FirstItemProcessor;
@@ -13,11 +14,9 @@ import org.springframework.batch.core.configuration.annotation.StepBuilderFactor
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.skip.AlwaysSkipItemSkipPolicy;
-import org.springframework.batch.core.step.skip.NonSkippableReadException;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.item.database.JdbcCursorItemReader;
 import org.springframework.batch.item.file.FlatFileItemReader;
-import org.springframework.batch.item.file.FlatFileParseException;
 import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
 import org.springframework.batch.item.file.mapping.DefaultLineMapper;
 import org.springframework.batch.item.file.mapping.FieldSetMapper;
@@ -69,6 +68,10 @@ public class SampleJob {
 
     @Autowired
     private DataSource dataSource;
+
+    @Autowired
+    private SkipListener skipListener;
+
 
 
     @Bean
@@ -132,24 +135,25 @@ public class SampleJob {
                 .<StudentDTO, StudentDTO>chunk(2)
                 .reader(readCSV())
                 //.reader(JdbcCursorItemReader())
-                //.processor(firstItemProcessor)
+                .processor(firstItemProcessor)
                 .writer(firstItemWriter)
                 .faultTolerant()
-               // .skip(FlatFileParseException.class)
-                .skip(ArithmeticException.class)// se salta algun registro que esté
-                                                   // malo o tenga problemas de consistencia.
+             // .skip(FlatFileParseException.class)
+               // .skip(ArithmeticException.class)// se salta algun registro que esté erroneo
+               // .skipLimit(5)   // limita el numero de veces que tiene que saltar del error
+                // malo o tenga problemas de consistencia.
 
                 .skipPolicy(new AlwaysSkipItemSkipPolicy()) // es mas sofisticado que SkipLimit(),
-                                                           // puesto que ya no es necesario establecerle
-                                                            // el limite, sino que se omiten todas las
-                                                            // exepciones del tipo que se le pase en el
-                                                            // skip
+                // puesto que ya no es necesario establecerle
+                // el limite, sino que se omiten todas las
+                // exepciones del tipo que se le pase en el
+                // skip
 
-                // .skipLimit(2)   // limita el numero de veces que tiene que saltar del error
+                .listener(skipListener)
+
                 .build();
 
     }
-
 
     // Este metodo permite convertir la fecha de nacimiento A LocalDate
     public ConversionService testConversionService() {
@@ -179,7 +183,7 @@ public class SampleJob {
         // Creamos los objetos:
 
         // Leemos el archivo .csv
-        File file =  new File("C:\\Users\\josse\\Downloads\\Create-First-Item-Reader\\src\\main\\resources\\students.csv");
+        File file = new File("C:\\Users\\josse\\Downloads\\Create-First-Item-Reader\\src\\main\\resources\\students.csv");
         FileSystemResource recurso = new FileSystemResource(file);
         FlatFileItemReader<StudentDTO> flatFileItemReader = new FlatFileItemReader<>();
         DefaultLineMapper<StudentDTO> defaultLineMapper = new DefaultLineMapper<StudentDTO>();
@@ -197,7 +201,6 @@ public class SampleJob {
         // El Wrapper
         beanWrapperFieldSetMapper.setTargetType(StudentDTO.class); // Le pasamos la clase del objeto que mapea
         beanWrapperFieldSetMapper.setConversionService(testConversionService()); // le agregamos la linea para la conversion del campo LocalDate
-
 
 
         defaultLineMapper.setLineTokenizer(delimitedLineTokenizer); // le pasamos el delimitador
@@ -219,24 +222,20 @@ public class SampleJob {
         return mapper;
     }
 
-    public JdbcCursorItemReader<StudentJdbc> JdbcCursorItemReader()
-    {
+    public JdbcCursorItemReader<StudentJdbc> JdbcCursorItemReader() {
         JdbcCursorItemReader<StudentJdbc> jdbccursorItemReader = new JdbcCursorItemReader<StudentJdbc>();
 
         jdbccursorItemReader.setDataSource(dataSource);
         jdbccursorItemReader.setSql("select id, nombre, apellido, email from student");
 
-        jdbccursorItemReader.setRowMapper( new BeanPropertyRowMapper<StudentJdbc>()
-        {
+        jdbccursorItemReader.setRowMapper(new BeanPropertyRowMapper<StudentJdbc>() {
             {
                 setMappedClass(StudentJdbc.class);
             }
         });
 
-        return  jdbccursorItemReader;
+        return jdbccursorItemReader;
     }
-
-
 
 
 }

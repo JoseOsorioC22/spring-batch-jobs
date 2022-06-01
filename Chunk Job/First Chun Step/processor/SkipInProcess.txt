@@ -1,0 +1,3 @@
+StudentDTO{id=6, nombre='Fabio', apellidos='Ramirez', email='jperez@gmailcom', fechaNacimiento=2020-05-19}
+StudentDTO{id=6, nombre='Fabio', apellidos='Ramirez', email='jperez@gmailcom', fechaNacimiento=2020-05-19}
+StudentDTO{id=6, nombre='Fabio', apellidos='Ramirez', email='jperez@gmailcom', fechaNacimiento=2020-05-19}
