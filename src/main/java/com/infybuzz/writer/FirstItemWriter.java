@@ -20,6 +20,7 @@ public class FirstItemWriter implements ItemWriter<StudentDTO> {
         {
             if(p.getId() == 9)
             {
+                log.info("INSIDE IN THE IF ");
                 throw  new ArithmeticException("ERROR ARITMETICO!!!");
             }
             System.out.println("Numero: " + p );

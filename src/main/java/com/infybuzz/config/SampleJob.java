@@ -149,6 +149,16 @@ public class SampleJob {
                 // exepciones del tipo que se le pase en el
                 // skip
 
+
+                /*
+                * El atributo de skipLimit es realmente "basado en elementos"
+                *  y no "basado en trabajos". Por "basado en elementos"
+                *  hace referencia  que para cada elemento (registro/línea)
+                *  que se lee/procesa/escribe, si ese elemento falla, se volverá a
+                *  intentar hasta el límite de reintentos. Si se alcanza ese límite, el step fallará.*/
+
+                .retryLimit(3)
+                .retry(Throwable.class)
                 .listener(skipListener)
 
                 .build();
